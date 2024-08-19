@@ -4,7 +4,7 @@ import "kaplay/global";
 
 const FLOOR_HEIGHT = 48;
 const JUMP_FORCE = 800;
-const SPEED = 480;
+const SPEED = 500;
 
 
 const k = kaplay({
@@ -42,6 +42,7 @@ k.loadSprite("sprite", "sprites/bunnySprite.png",{
 
 
 k.scene("start", () => {
+
     k.add([
         sprite("start"),
         pos(width() / 2, height() / 2- 120 ),
@@ -56,13 +57,15 @@ k.scene("start", () => {
         anchor("center"),
     ]);
 
-    onKeyPress("space", () => go("game"));
-    onClick(() => go("game"));
+	let highScore = 0;
+    onKeyPress("space", () => go("game", highScore));
+    onClick(() => go("game", highScore));
 });
 
-k.scene("game", () => 
+k.scene("game", (highScore) => 
 {
 	k.setGravity(1600);
+	let score = 0;
 
 	k.add([
 		sprite("sun"),
@@ -72,7 +75,7 @@ k.scene("game", () =>
 	])
 
 	const bunny = k.add([
-		k.pos(300,300),
+		k.pos(300,800),
 		k.sprite("sprite"),
 		scale(2),
 		k.body(),
@@ -88,20 +91,9 @@ k.scene("game", () =>
         color(45,129,19),
     ]);
 
-	onKeyPress(["space", "up", "w"], () => {
-		if (bunny.isGrounded()) {
-			bunny.jump();
-			bunny.play("jump");
-		}
-		else{
-			bunny.play("idle");
-		}
-	});
-
-		bunny.play("idle");
-	
 	function spawnTree(){
-		k.add([
+		if(score<2000){		
+			k.add([
 			rect(44, rand(20, 64)),
 			area(),
 			pos(width(), height() - FLOOR_HEIGHT),
@@ -111,20 +103,42 @@ k.scene("game", () =>
 			"tree",
 		]);
 		wait(rand(0.75, 2), spawnTree);
+		}
+
+		if(score>2000){
+			k.add([
+				rect(44, rand(50, 64)),
+				area(),
+				pos(width(), height() - FLOOR_HEIGHT),
+				anchor("botleft"),
+				color(0, 0, 128),
+				move(LEFT, SPEED*1.05),
+				"tree",
+			]);
+			wait(rand(0.6, 1.15), spawnTree);}
 	}
 	
 	spawnTree();
 	
 	bunny.onCollide("tree", () => {
-		go("lose", score);
+		go("lose", score, highScore);
 		addKaboom(bunny.pos);
 	});
-
-	let score = 0;
-
     const scoreLabel = add([text(score), pos(24, 24)]);
+    const highscoreLabel = add([text(highScore), pos(24, 60)]);
 
+
+	onKeyDown(["down","s"], () => {
+		bunny.move(0, SPEED);
+	});
+
+
+	bunny.play("idle");
     k.onUpdate(() => {
+		if(score==2350){
+		addKaboom(bunny.pos);
+		}
+
 		onKeyPress(["space", "up", "w"], () => {
 			if (bunny.isGrounded()) {
 				bunny.jump();
@@ -136,12 +150,13 @@ k.scene("game", () =>
 		});
         score++;
         scoreLabel.text = score;
+		highscoreLabel.text = highScore;
     });
 
 });
 
-scene("lose", (score) => {
-	if(score < 1000){
+scene("lose", (score, highScore) => {
+	if(score < highScore ){
 		k.add([
 			sprite("bunnyLose"),
 			pos(width() / 2, height() / 2- 120 ),
@@ -151,7 +166,7 @@ scene("lose", (score) => {
 
 
     	k.add([
-        	text(score),
+        	text(`Game Over! Your highscore: ${highScore}`),
         	pos(width() / 2, height() / 2 + 120),
         	scale(2),
         	anchor("center"),
@@ -164,9 +179,9 @@ scene("lose", (score) => {
         	anchor("center"),
    	 	]);
 	}
-
 	else
 	{
+		highScore = score;
 		k.add([
 			sprite("bunnyH"),
 			pos(width() / 2, height() / 2- 120 ),
@@ -175,8 +190,8 @@ scene("lose", (score) => {
 		]);
 
 
-    	k.add([
-        	text(score),
+		k.add([
+        	text(`Game Over! Your highscore: ${highScore}`),
         	pos(width() / 2, height() / 2 + 120),
         	scale(2),
         	anchor("center"),
@@ -192,8 +207,8 @@ scene("lose", (score) => {
 
 	}
 
-    onKeyPress("space", () => go("game"));
-    onClick(() => go("game"));
+    onKeyPress("space", () => go("game", highScore));
+    onClick(() => go("game", highScore));
 });
 
 k.go("start");
