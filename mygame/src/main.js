@@ -8,30 +8,34 @@ const k = kaplay({
 
 
 k.loadSprite("bunny", "sprites/bunny.png")
-k.setGravity(1600);
+
+k.scene("game", () => 
+{
+	k.setGravity(1600);
 
 
-
-const bunny = k.add([
+	const bunny = k.add([
 	k.pos(80, 40),
 	k.sprite("bunny"),
 	k.body(),
-	k.area(0.8),
-])
+	k.area(),
+	]);
 
-onKeyPress("space", () => {
+	onKeyPress("space", () => {
     if (bunny.isGrounded()) {
         bunny.jump();
     }
-});
+	});
 
-const ground = k.add([
+
+	const ground = k.add([
     rect(width(), 48),
     pos(0, height() - 48),
     outline(4),
     area(),
     body({ isStatic: true }),
     color(255, 255, 255),
-]);
+	]);
 
-k.onClick(() => k.addKaboom(k.mousePos()))
+}
+)
